@@ -2,6 +2,12 @@
 
 这份说明用于把服务器部署方式切换成 GitHub 更新模式。完成后，日常更新只需要：
 
+当前项目 GitHub 仓库地址：
+
+```text
+https://github.com/root1739126979/lixue-quiz
+```
+
 ```bash
 cd /www/wwwroot/lixue-quiz
 bash deploy/update.sh
@@ -41,11 +47,11 @@ cd /www/wwwroot
 mv lixue-quiz lixue-quiz-manual-backup
 ```
 
-然后从 GitHub 克隆项目。把下面的地址换成你的真实 GitHub 仓库地址：
+然后从 GitHub 克隆项目：
 
 ```bash
 cd /www/wwwroot
-git clone https://github.com/你的用户名/你的仓库名.git lixue-quiz
+git clone https://github.com/root1739126979/lixue-quiz.git lixue-quiz
 ```
 
 恢复服务器配置文件：

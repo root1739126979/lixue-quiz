@@ -2,6 +2,16 @@
 
 FastAPI + React/Vite implementation for the 砺学 quiz MVP. It supports employee import/login, question-bank import, practice feedback, wrong-question state, points, rankings, lightweight exams, AI explanation fallback, dashboard, and CSV exports.
 
+## Repository
+
+GitHub origin:
+
+```text
+https://github.com/root1739126979/lixue-quiz
+```
+
+After local changes are tested, commit and push to this repository. The server update script pulls from the same origin.
+
 ## Local Development
 
 ```powershell

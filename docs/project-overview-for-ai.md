@@ -6,11 +6,14 @@
 
 项目规格、计划和使用说明都在仓库内：
 
+- GitHub 仓库：`https://github.com/root1739126979/lixue-quiz`
 - 当前推荐 Spec：`docs/superpowers/specs/2026-05-28-lixue-quiz-platform-mvp-v2.md`
 - 早期设计备份：`docs/superpowers/specs/2026-05-28-lixue-quiz-platform-design.md`
 - 实施计划书：`docs/superpowers/plans/2026-05-28-lixue-quiz-platform-mvp.md`
 - 面向用户的使用说明：`docs/lixue-mvp-user-guide.md`
 - 项目 README：`README.md`
+
+后续 AI 修改本项目时，默认应提交到上述 GitHub 仓库的 `main` 分支，除非用户明确指定其他远程仓库或分支。
 
 ## 2. 项目定位
 
