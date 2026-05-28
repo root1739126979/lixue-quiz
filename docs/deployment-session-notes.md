@@ -143,6 +143,7 @@ ports:
 - 更新脚本保留 `.env`。
 - 更新脚本使用 `git fetch origin` 和 `git pull --ff-only`。
 - 更新脚本会执行 Docker 重建和前后端健康检查。
+- 更新脚本会等待服务启动完成后再判定健康检查失败。
 - 更新脚本包含失败回退逻辑。
 
 ## 三、`deploy/update.sh` 设计思路
@@ -218,6 +219,8 @@ docker compose up -d --build
 
 ### 7. 后端健康检查
 
+脚本会等待后端健康接口恢复，而不是在容器刚 `Started` 时立即判定失败。默认最多检查 30 次，每次间隔 2 秒。
+
 脚本检查：
 
 ```bash
@@ -232,6 +235,8 @@ curl --fail --silent --show-error http://127.0.0.1:8000/api/health
 
 ### 8. 前端健康检查
 
+脚本会等待前端页面恢复。默认最多检查 30 次，每次间隔 2 秒。
+
 脚本检查：
 
 ```bash
@@ -242,7 +247,7 @@ curl --fail --silent --show-error --head http://127.0.0.1:8080
 
 ### 9. 失败时回退
 
-如果 Docker 构建、后端检查或前端检查失败，脚本会执行：
+如果 Docker 构建失败，或前后端在重试等待后仍然检查失败，脚本会执行：
 
 ```bash
 git reset --hard "$previous_revision"

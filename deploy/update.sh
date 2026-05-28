@@ -4,6 +4,8 @@ set -Eeuo pipefail
 PROJECT_DIR="${PROJECT_DIR:-/www/wwwroot/lixue-quiz}"
 SERVER_HEALTH_URL="${SERVER_HEALTH_URL:-http://127.0.0.1:8000/api/health}"
 WEB_HEALTH_URL="${WEB_HEALTH_URL:-http://127.0.0.1:8080}"
+HEALTH_CHECK_RETRIES="${HEALTH_CHECK_RETRIES:-30}"
+HEALTH_CHECK_INTERVAL="${HEALTH_CHECK_INTERVAL:-2}"
 
 log() {
   printf '\n[%s] %s\n' "$(date '+%Y-%m-%d %H:%M:%S')" "$*"
@@ -19,14 +21,37 @@ run() {
   "$@"
 }
 
+wait_for_http() {
+  local url="$1"
+  local mode="${2:-get}"
+  local attempt
+
+  for attempt in $(seq 1 "$HEALTH_CHECK_RETRIES"); do
+    if [ "$mode" = "--head" ]; then
+      if curl --fail --silent --show-error --head "$url" >/dev/null; then
+        return 0
+      fi
+    else
+      if curl --fail --silent --show-error "$url" >/dev/null; then
+        return 0
+      fi
+    fi
+
+    log "Waiting for ${url} (${attempt}/${HEALTH_CHECK_RETRIES})."
+    sleep "$HEALTH_CHECK_INTERVAL"
+  done
+
+  return 1
+}
+
 rollback() {
   local previous_revision="$1"
 
   log "Deployment failed. Rolling back to ${previous_revision}."
   git reset --hard "$previous_revision"
   docker compose up -d --build
-  curl --fail --silent --show-error "$SERVER_HEALTH_URL" >/dev/null
-  curl --fail --silent --show-error --head "$WEB_HEALTH_URL" >/dev/null
+  wait_for_http "$SERVER_HEALTH_URL"
+  wait_for_http "$WEB_HEALTH_URL" --head
   log "Rollback completed."
 }
 
@@ -65,13 +90,13 @@ if ! run docker compose up -d --build; then
 fi
 
 log "Checking backend health."
-if ! curl --fail --silent --show-error "$SERVER_HEALTH_URL" >/dev/null; then
+if ! wait_for_http "$SERVER_HEALTH_URL"; then
   rollback "$previous_revision"
   fail "Backend health check failed. Rolled back to the previous revision."
 fi
 
 log "Checking frontend health."
-if ! curl --fail --silent --show-error --head "$WEB_HEALTH_URL" >/dev/null; then
+if ! wait_for_http "$WEB_HEALTH_URL" --head; then
   rollback "$previous_revision"
   fail "Frontend health check failed. Rolled back to the previous revision."
 fi

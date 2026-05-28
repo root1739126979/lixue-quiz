@@ -79,9 +79,15 @@ bash deploy/update.sh
 6. 执行 `git fetch origin`。
 7. 执行 `git pull --ff-only`。
 8. 执行 `docker compose up -d --build`。
-9. 检查后端健康接口。
-10. 检查前端页面。
-11. 如果构建或检查失败，自动回退到更新前的 Git 版本并重启旧版本。
+9. 等待并检查后端健康接口。
+10. 等待并检查前端页面。
+11. 如果构建失败，或前后端在等待后仍不可用，自动回退到更新前的 Git 版本并重启旧版本。
+
+健康检查默认最多等待约 60 秒。可通过环境变量调整：
+
+```bash
+HEALTH_CHECK_RETRIES=60 HEALTH_CHECK_INTERVAL=2 bash deploy/update.sh
+```
 
 ## 四、注意事项
 

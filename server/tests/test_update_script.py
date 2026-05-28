@@ -28,6 +28,16 @@ def test_update_script_rebuilds_and_checks_services():
     assert "http://127.0.0.1:8080" in content
 
 
+def test_update_script_waits_for_services_before_rollback():
+    content = SCRIPT.read_text(encoding="utf-8")
+
+    assert "HEALTH_CHECK_RETRIES" in content
+    assert "wait_for_http" in content
+    assert "sleep \"$HEALTH_CHECK_INTERVAL\"" in content
+    assert "wait_for_http \"$SERVER_HEALTH_URL\"" in content
+    assert "wait_for_http \"$WEB_HEALTH_URL\" --head" in content
+
+
 def test_update_script_rolls_back_to_previous_revision():
     content = SCRIPT.read_text(encoding="utf-8")
 
