@@ -1,0 +1,16 @@
+.env
+.agents/
+.superpowers/
+.pytest_tmp/
+**/__pycache__/
+*.py[cod]
+server/*.db
+picture/
+docx_assets/
+web/node_modules/
+web/dist/
+*.tar
+*.xlsx
+*.docx
+员工.csv
+~$*
