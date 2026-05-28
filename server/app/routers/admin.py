@@ -7,7 +7,7 @@ from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
 from fastapi.responses import Response
 from openpyxl import load_workbook
 from pydantic import BaseModel
-from sqlalchemy import or_, select
+from sqlalchemy import func, or_, select
 from sqlalchemy.orm import Session, selectinload
 
 from app.database import get_db
@@ -17,12 +17,14 @@ from app.models import (
     ExamAttempt,
     ImportBatch,
     LlmConfig,
+    PointTransaction,
     PointRule,
     Question,
     QuestionBank,
     QuestionOption,
     QuestionType,
     User,
+    WrongQuestion,
 )
 from app.security import hash_password, verify_password
 from app.config import settings
@@ -325,6 +327,55 @@ def list_employees(db: Session = Depends(get_db)) -> dict:
             }
             for user in users
         ]
+    }
+
+
+@router.get("/employees/{employee_id}/summary")
+def get_employee_summary(employee_id: int, db: Session = Depends(get_db)) -> dict:
+    user = db.get(User, employee_id)
+    if not user:
+        raise HTTPException(status_code=404, detail="员工不存在")
+
+    answer_count = (
+        db.scalar(select(func.count(AnswerRecord.id)).where(AnswerRecord.user_id == user.id)) or 0
+    )
+    correct_count = (
+        db.scalar(
+            select(func.count(AnswerRecord.id)).where(
+                AnswerRecord.user_id == user.id,
+                AnswerRecord.is_correct.is_(True),
+            )
+        )
+        or 0
+    )
+    total_points = (
+        db.scalar(
+            select(func.coalesce(func.sum(PointTransaction.points), 0)).where(
+                PointTransaction.user_id == user.id
+            )
+        )
+        or 0
+    )
+    open_wrong_count = (
+        db.scalar(
+            select(func.count(WrongQuestion.id)).where(
+                WrongQuestion.user_id == user.id,
+                WrongQuestion.status == "open",
+            )
+        )
+        or 0
+    )
+    return {
+        "id": user.id,
+        "name": user.name,
+        "work_no": user.work_no,
+        "phone": user.phone,
+        "department": user.department,
+        "is_active": user.is_active,
+        "answer_count": answer_count,
+        "accuracy": round(correct_count * 100 / answer_count, 2) if answer_count else 0,
+        "total_points": int(total_points),
+        "open_wrong_count": open_wrong_count,
     }
 
 
